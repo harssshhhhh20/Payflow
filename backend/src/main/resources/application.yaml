@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: payflow
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/payflow
+    username: payflow
+    password: payflow
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui
+
+  api-docs:
+    path: /api-docs
