@@ -3,6 +3,7 @@ package com.harsh.payflow.common.exception;
 import com.harsh.payflow.common.response.ErrorResponse;
 import com.harsh.payflow.merchant.exception.MerchantAlreadyExistsException;
 import com.harsh.payflow.merchant.exception.MerchantNotFoundException;
+import com.harsh.payflow.payment.exception.PaymentNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +68,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MerchantNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleMerchantNotFound(
             MerchantNotFoundException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentNotFound(
+            PaymentNotFoundException ex
     ) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)

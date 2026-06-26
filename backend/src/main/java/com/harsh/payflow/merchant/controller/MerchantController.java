@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/merchants")
 @RequiredArgsConstructor
@@ -36,6 +38,22 @@ public class MerchantController {
     ) {
         return ResponseEntity.ok(
                 merchantService.getMerchant(merchantId)
+        );
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<MerchantDetailsResponse>>> getAllMerchants() {
+        return ResponseEntity.ok(
+                merchantService.getAllMerchants()
+        );
+    }
+
+    @PatchMapping("/{merchantId}/deactivate")
+    public ResponseEntity<ApiResponse<Void>> deactivateMerchant(
+            @PathVariable String merchantId
+    ) {
+        return ResponseEntity.ok(
+                merchantService.deactivateMerchant(merchantId)
         );
     }
 
