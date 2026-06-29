@@ -17,7 +17,10 @@ public record CreatePaymentResponse(
 
         PaymentStatus status,
 
+        String gatewayPaymentId,
+
+        String gatewayKeyId,
+
         LocalDateTime createdAt
 
-) {
-}
+) {}

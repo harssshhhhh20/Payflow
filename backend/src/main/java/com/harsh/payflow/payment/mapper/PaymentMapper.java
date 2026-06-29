@@ -29,7 +29,10 @@ public class PaymentMapper {
                 .build();
     }
 
-    public CreatePaymentResponse toResponse(Payment payment) {
+    public CreatePaymentResponse toResponse(
+            Payment payment,
+            String gatewayKeyId
+    ) {
 
         return new CreatePaymentResponse(
                 payment.getPaymentId(),
@@ -37,6 +40,8 @@ public class PaymentMapper {
                 payment.getAmount(),
                 payment.getCurrency(),
                 payment.getStatus(),
+                payment.getGatewayPaymentId(),
+                gatewayKeyId,
                 payment.getCreatedAt()
         );
     }

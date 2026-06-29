@@ -49,6 +49,10 @@ public class Payment {
     @Column(nullable = false)
     private GatewayType gateway;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer retryCount = 0;
+
     @Column(unique = true)
     private String gatewayPaymentId;
 

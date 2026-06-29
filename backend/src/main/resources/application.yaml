@@ -3,15 +3,21 @@ spring:
     name: payflow
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/payflow
-    username: payflow
-    password: payflow
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
 server:
   port: 8080
@@ -22,3 +28,28 @@ springdoc:
 
   api-docs:
     path: /api-docs
+
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID}
+  key-secret: ${RAZORPAY_KEY_SECRET}
+  webhook-secret : ${RAZORPAY_WEBHOOK_SECRET}
+
+payflow:
+  webhook:
+    signature-verification-enabled: false
+
+
+logging:
+  level:
+    org.springframework.amqp: DEBUG
+    org.springframework.rabbit: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+  endpoint:
+    health:
+      show-details: always
