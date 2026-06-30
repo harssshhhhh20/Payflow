@@ -8,7 +8,6 @@ import com.harsh.payflow.merchant.dto.response.CreateMerchantResponse;
 import com.harsh.payflow.merchant.dto.response.MerchantDetailsResponse;
 import com.harsh.payflow.merchant.entity.Merchant;
 import com.harsh.payflow.merchant.exception.MerchantAlreadyExistsException;
-import com.harsh.payflow.merchant.exception.MerchantNotFoundException;
 import com.harsh.payflow.merchant.finder.MerchantFinder;
 import com.harsh.payflow.merchant.mapper.MerchantMapper;
 import com.harsh.payflow.merchant.repository.MerchantRepository;
@@ -45,12 +44,15 @@ public class MerchantServiceImpl implements MerchantService {
         } while (merchantRepository.existsByMerchantId(merchantId));
 
         String apiKey = apiKeyGenerator.generate();
+        String apiKeyPrefix = apiKey.substring("pf_live_".length(),
+                "pf_live_".length() + 8);
 
         String apiKeyHash = passwordEncoder.encode(apiKey);
 
         Merchant merchant = merchantMapper.toEntity(
                 request,
                 merchantId,
+                apiKeyPrefix,
                 apiKeyHash
         );
 

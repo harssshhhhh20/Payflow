@@ -12,9 +12,7 @@ public interface PaymentService {
 
     ApiResponse<CreatePaymentResponse> getPayment(String paymentId);
 
-    ApiResponse<List<CreatePaymentResponse>> getPaymentsByMerchant(
-            String merchantId
-    );
+    ApiResponse<List<CreatePaymentResponse>> getMyPayments();
 
     ApiResponse<CreatePaymentResponse> retryPayment(String paymentId);
 }

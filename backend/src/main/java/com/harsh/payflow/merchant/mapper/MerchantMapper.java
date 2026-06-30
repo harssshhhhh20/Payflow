@@ -12,6 +12,7 @@ public class MerchantMapper {
     public Merchant toEntity(
             CreateMerchantRequest request,
             String merchantId,
+            String apiKeyPrefix,
             String apiKeyHash
     ) {
 
@@ -19,6 +20,7 @@ public class MerchantMapper {
                 .merchantId(merchantId)
                 .businessName(request.businessName())
                 .email(request.email())
+                .apiKeyPrefix(apiKeyPrefix)
                 .apiKeyHash(apiKeyHash)
                 .active(true)
                 .build();

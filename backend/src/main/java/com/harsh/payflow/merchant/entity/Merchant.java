@@ -30,6 +30,9 @@ public class Merchant {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(name = "api_key_prefix", length = 16)
+    private String apiKeyPrefix;
+
     @Column(nullable = false)
     private String apiKeyHash;
 

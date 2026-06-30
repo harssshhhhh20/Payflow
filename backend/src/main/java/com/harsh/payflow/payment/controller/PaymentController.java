@@ -41,12 +41,12 @@ public class PaymentController {
         );
     }
 
-    @GetMapping("/{merchantId}/payments")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<CreatePaymentResponse>>> getMerchantPayments(
             @PathVariable String merchantId
     ) {
         return ResponseEntity.ok(
-                paymentService.getPaymentsByMerchant(merchantId)
+                paymentService.getMyPayments()
         );
     }
 

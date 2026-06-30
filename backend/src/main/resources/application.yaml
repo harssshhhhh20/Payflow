@@ -43,6 +43,8 @@ logging:
   level:
     org.springframework.amqp: DEBUG
     org.springframework.rabbit: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%X{correlationId}] %logger{36} - %msg%n"
 
 management:
   endpoints:
@@ -53,3 +55,16 @@ management:
   endpoint:
     health:
       show-details: always
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      razorpayGateway:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true

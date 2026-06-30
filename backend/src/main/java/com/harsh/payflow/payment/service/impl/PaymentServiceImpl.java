@@ -1,6 +1,7 @@
 package com.harsh.payflow.payment.service.impl;
 
 import com.harsh.payflow.common.response.ApiResponse;
+import com.harsh.payflow.common.security.AuthenticatedMerchantProvider;
 import com.harsh.payflow.common.util.PaymentIdGenerator;
 import com.harsh.payflow.merchant.entity.Merchant;
 import com.harsh.payflow.merchant.finder.MerchantFinder;
@@ -17,12 +18,15 @@ import com.harsh.payflow.payment.finder.PaymentFinder;
 import com.harsh.payflow.payment.gateway.GatewayResponse;
 import com.harsh.payflow.payment.gateway.PaymentGateway;
 import com.harsh.payflow.payment.mapper.PaymentMapper;
+import com.harsh.payflow.payment.metrics.PaymentMetricEvent;
+import com.harsh.payflow.payment.metrics.PaymentMetricsService;
 import com.harsh.payflow.payment.publisher.PaymentEventPublisher;
 import com.harsh.payflow.payment.repository.PaymentRepository;
 import com.harsh.payflow.payment.service.PaymentService;
 import com.harsh.payflow.payment.statemachine.PaymentStateMachine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +47,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentStateMachine paymentStateMachine;
     private final PaymentAuditService paymentAuditService;
     private final PaymentEventPublisher paymentEventPublisher;
+    private final AuthenticatedMerchantProvider authenticatedMerchantProvider;
+    private final PaymentMetricsService paymentMetricsService;
 
     @Transactional
     @Override
@@ -50,10 +56,18 @@ public class PaymentServiceImpl implements PaymentService {
             CreatePaymentRequest request
     ) {
 
+        Merchant merchant = merchantFinder.getByMerchantId(
+                authenticatedMerchantProvider
+                        .getAuthenticatedMerchant()
+                        .getMerchantId()
+        );
+
         Optional<Payment> existingPayment =
-                paymentRepository.findByIdempotencyKey(
-                        request.idempotencyKey()
-                );
+                paymentRepository
+                        .findByMerchant_MerchantIdAndIdempotencyKey(
+                                merchant.getMerchantId(),
+                                request.idempotencyKey()
+                        );
 
         if (existingPayment.isPresent()) {
             return ApiResponse.success(
@@ -64,9 +78,6 @@ public class PaymentServiceImpl implements PaymentService {
                     )
             );
         }
-
-        Merchant merchant =
-                merchantFinder.getByMerchantId(request.merchantId());
 
         String paymentId;
 
@@ -97,6 +108,9 @@ public class PaymentServiceImpl implements PaymentService {
         );
 
         savedPayment = paymentRepository.save(savedPayment);
+        paymentMetricsService.recordPayment(
+                PaymentMetricEvent.CREATED
+        );
         paymentAuditService.recordCreated(savedPayment);
         paymentEventPublisher.publishPaymentCreated(
                 new PaymentCreatedEvent(
@@ -131,6 +145,19 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment payment =
                 paymentFinder.getByPaymentId(paymentId);
+        String authenticatedMerchantId =
+                authenticatedMerchantProvider
+                        .getAuthenticatedMerchant()
+                        .getMerchantId();
+
+        if (!payment.getMerchant()
+                .getMerchantId()
+                .equals(authenticatedMerchantId)) {
+
+            throw new AccessDeniedException(
+                    "You are not authorized to access this payment."
+            );
+        }
 
         return ApiResponse.success(
                 "Payment fetched successfully",
@@ -143,11 +170,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Transactional(readOnly = true)
     @Override
-    public ApiResponse<List<CreatePaymentResponse>> getPaymentsByMerchant(
-            String merchantId
-    ) {
+    public ApiResponse<List<CreatePaymentResponse>> getMyPayments(){
 
-        merchantFinder.getByMerchantId(merchantId);
+        String merchantId =
+                authenticatedMerchantProvider
+                        .getAuthenticatedMerchant()
+                        .getMerchantId();
 
         List<CreatePaymentResponse> payments =
                 paymentRepository
@@ -174,6 +202,19 @@ public class PaymentServiceImpl implements PaymentService {
     ) {
 
         Payment payment = paymentFinder.getByPaymentId(paymentId);
+        String authenticatedMerchantId =
+                authenticatedMerchantProvider
+                        .getAuthenticatedMerchant()
+                        .getMerchantId();
+
+        if (!payment.getMerchant()
+                .getMerchantId()
+                .equals(authenticatedMerchantId)) {
+
+            throw new AccessDeniedException(
+                    "You are not authorized to retry this payment."
+            );
+        }
 
         if (!paymentStateMachine.canTransition(
                 payment.getStatus(),
@@ -211,6 +252,8 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setStatus(PaymentStatus.PENDING);
 
         payment = paymentRepository.save(payment);
+
+        paymentMetricsService.recordRetry();
 
         paymentAuditService.recordRetryInitiated(payment);
 
