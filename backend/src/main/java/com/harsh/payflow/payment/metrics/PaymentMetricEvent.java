@@ -4,6 +4,8 @@ public enum PaymentMetricEvent {
 
     CREATED,
     CAPTURED,
-    FAILED
+    FAILED,
+    CREATION_FAILED,
+    RETRY_FAILED
 
 }

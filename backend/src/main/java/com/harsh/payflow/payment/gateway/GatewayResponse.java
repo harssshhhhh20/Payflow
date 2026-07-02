@@ -6,11 +6,7 @@ public record GatewayResponse(
 
         String gatewayPublicKey,
 
-        String checkoutUrl,
-
-        boolean success,
-
-        String errorMessage
+        String checkoutUrl
 
 ) {
 }

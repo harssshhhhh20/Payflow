@@ -100,12 +100,6 @@ public class PaymentServiceImpl implements PaymentService {
             GatewayResponse gatewayResponse =
                     paymentGateway.createPayment(savedPayment);
 
-            if (!gatewayResponse.success()) {
-                throw new PaymentGatewayException(
-                        gatewayResponse.errorMessage()
-                );
-            }
-
             savedPayment.setGatewayPaymentId(
                     gatewayResponse.gatewayPaymentId()
             );
@@ -141,7 +135,18 @@ public class PaymentServiceImpl implements PaymentService {
                             gatewayResponse.gatewayPublicKey()
                     )
             );
-        }finally {
+        }catch (PaymentGatewayException ex){
+            paymentMetricsService.recordPayment(
+                    PaymentMetricEvent.CREATION_FAILED
+            );
+
+            paymentMetricsService.recordRequestOutcome(
+                    PaymentRequestOutcome.FAILED
+            );
+
+            throw ex;
+        }
+        finally {
             paymentMetricsService.stopPaymentProcessing(sample);
         }
     }
@@ -242,12 +247,6 @@ public class PaymentServiceImpl implements PaymentService {
             GatewayResponse gatewayResponse =
                     paymentGateway.createPayment(payment);
 
-            if (!gatewayResponse.success()) {
-                throw new PaymentGatewayException(
-                        gatewayResponse.errorMessage()
-                );
-            }
-
             payment.setGatewayPaymentId(
                     gatewayResponse.gatewayPaymentId()
             );
@@ -278,7 +277,13 @@ public class PaymentServiceImpl implements PaymentService {
                             gatewayResponse.gatewayPublicKey()
                     )
             );
-        }finally {
+        }catch (PaymentGatewayException ex) {
+            paymentMetricsService.recordPayment(
+                    PaymentMetricEvent.RETRY_FAILED
+            );
+            throw ex;
+        }
+        finally {
             paymentMetricsService.stopPaymentProcessing(sample);
         }
     }

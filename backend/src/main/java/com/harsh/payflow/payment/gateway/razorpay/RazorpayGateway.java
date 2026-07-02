@@ -14,9 +14,11 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RazorpayGateway implements PaymentGateway {
@@ -57,13 +59,15 @@ public class RazorpayGateway implements PaymentGateway {
             return new GatewayResponse(
                     order.get("id").toString(),
                     razorpayProperties.getKeyId(),
-                    null,
-                    true,
                     null
             );
 
         } catch (Exception e) {
+
+            log.error("Razorpay order creation failed", e);
+
             paymentMetricsService.stopGatewayProcessing(sample);
+
             throw new PaymentGatewayException(
                     "Failed to create Razorpay order",
                     e

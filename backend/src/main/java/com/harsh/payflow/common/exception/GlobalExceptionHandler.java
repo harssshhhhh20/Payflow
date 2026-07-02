@@ -12,6 +12,8 @@ import com.harsh.payflow.payment.ratelimit.RateLimitException;
 import io.github.resilience4j.bulkhead.BulkheadFullException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -25,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private final PaymentMetricsService paymentMetricsService;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -170,13 +173,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleGenericException(
             Exception ex
     ) {
-
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(
-                        ApiResponse.failure(
-                                "An unexpected error occurred."
-                        )
-                );
+        log.error("Unhandled exception: ",ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.failure(ex.getMessage()));
     }
 }
