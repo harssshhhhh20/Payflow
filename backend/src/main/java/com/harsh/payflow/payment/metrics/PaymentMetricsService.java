@@ -14,4 +14,9 @@ public interface PaymentMetricsService {
 
     void stopPaymentProcessing(Timer.Sample sample);
 
+    Timer.Sample startGatewayProcessing();
+
+    void stopGatewayProcessing(Timer.Sample sample);
+
+    void recordRequestOutcome(PaymentRequestOutcome outcome);
 }

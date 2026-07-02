@@ -32,17 +32,22 @@ springdoc:
 razorpay:
   key-id: ${RAZORPAY_KEY_ID}
   key-secret: ${RAZORPAY_KEY_SECRET}
-  webhook-secret : ${RAZORPAY_WEBHOOK_SECRET}
+  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET}
 
 payflow:
   webhook:
     signature-verification-enabled: false
 
+  rate-limit:
+    limit: 100
+    window-seconds: 60
 
 logging:
   level:
+    io.github.resilience4j.retry: DEBUG
     org.springframework.amqp: DEBUG
     org.springframework.rabbit: DEBUG
+
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%X{correlationId}] %logger{36} - %msg%n"
 
@@ -50,8 +55,16 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
-
+        include:
+          - health
+          - info
+          - metrics
+          - prometheus
+          - circuitbreakers
+          - circuitbreakerevents
+          - retries
+          - retryevents
+          - bulkheads
   endpoint:
     health:
       show-details: always
@@ -68,3 +81,17 @@ resilience4j:
         wait-duration-in-open-state: 30s
         permitted-number-of-calls-in-half-open-state: 3
         automatic-transition-from-open-to-half-open-enabled: true
+
+  retry:
+    instances:
+      razorpayGateway:
+        max-attempts: 3
+        wait-duration: 1s
+        retry-exceptions:
+          - com.harsh.payflow.payment.exception.PaymentGatewayException
+
+  bulkhead:
+    instances:
+      razorpayGateway:
+        max-concurrent-calls: 10
+        max-wait-duration: 0
