@@ -144,12 +144,9 @@ class PaymentServiceImplTest {
     }
 
     private GatewayResponse successGatewayResponse() {
-
         return new GatewayResponse(
                 "order_123",
                 "rzp_test_key",
-                null,
-                true,
                 null
         );
     }
@@ -244,20 +241,9 @@ class PaymentServiceImplTest {
     @Test
     void shouldThrowExceptionWhenGatewayFails() {
 
-        CreatePaymentRequest request =
-                createRequest();
+        CreatePaymentRequest request = createRequest();
 
-        Payment payment =
-                createPayment();
-
-        GatewayResponse failedGateway =
-                new GatewayResponse(
-                        null,
-                        null,
-                        null,
-                        false,
-                        "Gateway Down"
-                );
+        Payment payment = createPayment();
 
         when(paymentRepository.findByMerchant_MerchantIdAndIdempotencyKey(
                 "MER_123",
@@ -278,21 +264,16 @@ class PaymentServiceImplTest {
         )).thenReturn(payment);
 
         when(paymentGateway.createPayment(payment))
-                .thenReturn(failedGateway);
+                .thenThrow(new PaymentGatewayException("Gateway Down"));
 
         assertThrows(
                 PaymentGatewayException.class,
                 () -> paymentService.createPayment(request)
         );
 
-        verify(paymentAuditService, never())
-                .recordCreated(any());
-
-        verify(paymentEventPublisher, never())
-                .publishPaymentCreated(any());
-
-        verify(paymentMetricsService)
-                .stopPaymentProcessing(timerSample);
+        verify(paymentAuditService, never()).recordCreated(any());
+        verify(paymentEventPublisher, never()).publishPaymentCreated(any());
+        verify(paymentMetricsService).stopPaymentProcessing(timerSample);
     }
 
     @Test

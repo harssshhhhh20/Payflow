@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:payflow
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+  flyway:
+    enabled: false
+
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: false
+
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+razorpay:
+  key-id: test
+  key-secret: test
+  webhook-secret: test
